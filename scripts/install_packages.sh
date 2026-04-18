@@ -25,7 +25,9 @@ DNF_PACKAGES=(
 
 install_neovim_apt() {
     # apt neovim is too old for AstroNvim (requires >=0.10.0) — install from GitHub releases
-    if ! command -v nvim &>/dev/null; then
+    local cur
+    cur=$(nvim --version 2>/dev/null | awk 'NR==1{gsub(/v/,"",$2); print $2}')
+    if [[ -z "$cur" ]] || ! printf '%s\n%s\n' "0.10.0" "$cur" | sort -V -C; then
         local tmp
         tmp=$(mktemp -d)
         curl -sL "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz" \
@@ -34,6 +36,15 @@ install_neovim_apt() {
         cp -r "$tmp"/nvim-linux-x86_64/lib  /usr/local/
         cp -r "$tmp"/nvim-linux-x86_64/share /usr/local/
         rm -rf "$tmp"
+        # tarball ships vi/vim symlinks — remove any that landed in /usr/local/bin
+        for cmd in vi vim; do
+            if [ -L "/usr/local/bin/$cmd" ] && readlink "/usr/local/bin/$cmd" | grep -q nvim; then
+                rm -f "/usr/local/bin/$cmd"
+            fi
+        done
+        # also clear alternatives if neovim somehow registered them
+        update-alternatives --remove vi /usr/local/bin/nvim 2>/dev/null || true
+        update-alternatives --remove vim /usr/local/bin/nvim 2>/dev/null || true
     fi
 }
 
@@ -101,6 +112,9 @@ case "$PKG_MGR" in
         if ! command -v eza &>/dev/null; then
             sudo dnf install -y eza 2>/dev/null || echo "  [warn] eza not available in repos, skipping"
         fi
+        # neovim dnf package registers vi/vim alternatives — remove them so originals are preserved
+        sudo update-alternatives --remove vi /usr/bin/nvim 2>/dev/null || true
+        sudo update-alternatives --remove vim /usr/bin/nvim 2>/dev/null || true
         ;;
 esac
 
