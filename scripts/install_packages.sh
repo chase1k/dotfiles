@@ -6,7 +6,7 @@ set -e
 
 APT_PACKAGES=(
     zsh tmux git curl wget
-    neovim fzf zoxide
+    zoxide
     ripgrep bat fd-find
     python3-pip python3-venv
     build-essential
@@ -23,6 +23,20 @@ DNF_PACKAGES=(
     xclip
 )
 
+install_neovim_apt() {
+    # apt neovim is too old for AstroNvim (requires >=0.10.0) — install from GitHub releases
+    if ! command -v nvim &>/dev/null; then
+        local tmp
+        tmp=$(mktemp -d)
+        curl -sL "https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz" \
+            | tar -C "$tmp" -xz
+        install -Dm755 "$tmp"/nvim-linux-x86_64/bin/nvim /usr/local/bin/nvim
+        cp -r "$tmp"/nvim-linux-x86_64/lib  /usr/local/
+        cp -r "$tmp"/nvim-linux-x86_64/share /usr/local/
+        rm -rf "$tmp"
+    fi
+}
+
 install_fastfetch_apt() {
     # fastfetch is not in standard Ubuntu repos — install via PPA
     if ! command -v fastfetch &>/dev/null; then
@@ -33,6 +47,21 @@ install_fastfetch_apt() {
         else
             echo "  [warn] add-apt-repository not available, skipping fastfetch install"
         fi
+    fi
+}
+
+install_fzf_apt() {
+    # apt fzf is too old to support --zsh (requires >=0.48.0) — install from GitHub
+    if ! command -v fzf &>/dev/null; then
+        local tmp arch tag
+        tmp=$(mktemp -d)
+        arch=$(uname -m); [ "$arch" = "x86_64" ] && arch="amd64" || arch="arm64"
+        tag=$(curl -s https://api.github.com/repos/junegunn/fzf/releases/latest \
+            | grep '"tag_name"' | sed 's/.*"v\([^"]*\)".*/\1/')
+        curl -sL "https://github.com/junegunn/fzf/releases/download/v${tag}/fzf-${tag}-linux_${arch}.tar.gz" \
+            | tar -C "$tmp" -xz
+        install -Dm755 "$tmp/fzf" /usr/local/bin/fzf
+        rm -rf "$tmp"
     fi
 }
 
@@ -60,7 +89,9 @@ case "$PKG_MGR" in
     apt)
         sudo apt-get update -q
         sudo apt-get install -y "${APT_PACKAGES[@]}"
+        sudo bash -c "$(declare -f install_neovim_apt); install_neovim_apt" || true
         sudo bash -c "$(declare -f install_fastfetch_apt); install_fastfetch_apt" || true
+        sudo bash -c "$(declare -f install_fzf_apt); install_fzf_apt" || true
         sudo bash -c "$(declare -f install_eza_apt); install_eza_apt" || true
         # bat is installed as batcat on Debian/Ubuntu — alias handled in shell
         ;;

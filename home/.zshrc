@@ -21,7 +21,9 @@ fi
 
 # fzf key bindings and fuzzy completion
 if command -v fzf &>/dev/null; then
-  source <(fzf --zsh)
+  if fzf --zsh >/dev/null 2>&1; then
+    source <(fzf --zsh)
+  fi
 fi
 
 # zoxide (replaces cd)

@@ -35,24 +35,9 @@ fi
 
 # ── Rust / cargo (optional) ───────────────────────────────────────────────────
 if ! command -v cargo &>/dev/null; then
-    echo ""
-    read -rp "Install Rust (rustup)? [y/N] " ans
-    if [[ "$ans" =~ ^[Yy]$ ]]; then
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    fi
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 else
     echo "  [skip] cargo already installed"
-fi
-
-# ── Homebrew (optional) ───────────────────────────────────────────────────────
-if ! command -v brew &>/dev/null; then
-    echo ""
-    read -rp "Install Homebrew (Linux)? [y/N] " ans
-    if [[ "$ans" =~ ^[Yy]$ ]]; then
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    fi
-else
-    echo "  [skip] brew already installed"
 fi
 
 echo "==> Tools ready."
