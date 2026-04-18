@@ -1,0 +1,26 @@
+# SSH Config Template
+# Copy to ~/.ssh/config and customize with your actual hosts
+# Do NOT commit your real ~/.ssh/config (it's not symlinked for this reason)
+
+# Example: trust all local subnet (useful for homelab/VMs)
+# Host 192.168.*.*
+#     IdentitiesOnly yes
+#     StrictHostKeyChecking no
+#     IdentityFile ~/.ssh/id_ed25519
+
+# Example: named host
+# Host myserver
+#     Hostname 192.168.1.x
+#     User myuser
+#     IdentityFile ~/.ssh/id_ed25519
+
+# CTF / pwn.college
+# Host pwn.college
+#     HostName dojo.pwn.college
+#     User hacker
+#     IdentityFile ~/.ssh/id_rsa
+#     ForwardAgent yes
+
+# 1Password SSH agent (comment out if not using 1Password)
+# Host *
+#     IdentityAgent ~/.1password/agent.sock

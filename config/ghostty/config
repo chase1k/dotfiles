@@ -1,0 +1,5 @@
+theme = Seti
+shell-integration = zsh
+font-feature = -liga
+font-feature = -dlig
+font-feature = -calt
