@@ -8,7 +8,6 @@ APT_PACKAGES=(
     zsh tmux git curl wget
     neovim fzf zoxide
     ripgrep bat fd-find
-    fastfetch
     python3-pip python3-venv
     build-essential
     xclip  # x11 clipboard fallback
@@ -23,6 +22,19 @@ DNF_PACKAGES=(
     gcc make
     xclip
 )
+
+install_fastfetch_apt() {
+    # fastfetch is not in standard Ubuntu repos — install via PPA
+    if ! command -v fastfetch &>/dev/null; then
+        if command -v add-apt-repository &>/dev/null; then
+            add-apt-repository -y ppa:zhangsongcui3371/fastfetch
+            apt-get update -q
+            apt-get install -y fastfetch
+        else
+            echo "  [warn] add-apt-repository not available, skipping fastfetch install"
+        fi
+    fi
+}
 
 install_eza_apt() {
     # eza is not in standard Ubuntu repos — use the official apt repo
@@ -48,7 +60,8 @@ case "$PKG_MGR" in
     apt)
         sudo apt-get update -q
         sudo apt-get install -y "${APT_PACKAGES[@]}"
-        sudo install_eza_apt || true
+        sudo bash -c "$(declare -f install_fastfetch_apt); install_fastfetch_apt" || true
+        sudo bash -c "$(declare -f install_eza_apt); install_eza_apt" || true
         # bat is installed as batcat on Debian/Ubuntu — alias handled in shell
         ;;
     dnf)
